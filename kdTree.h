@@ -10,11 +10,11 @@ template <typename PointType, int SplitDimension>
 class KDNode {
 public:
   typedef KDNode<PointType, (SplitDimension + 1)%PointType::dimension> ChildType;
-  
+
   KDNode(size_t ind) : treeIndex(ind) {}
   size_t treeIndex; //particle's position in tree's list
   std::unique_ptr<ChildType> leftChild, rightChild;
-  
+
 };
 
 
@@ -25,10 +25,10 @@ template <typename PointType, typename PointArray=std::vector<PointType> >
  KDTree(const PointArray& pointsIn){
    buildTree(pointsIn);
   }
- 
 
- 
- void buildTree(const PointArray& pointsIn); 
+
+
+ void buildTree(const PointArray& pointsIn);
  void dumpTreeInorder();
 
  template <typename F>
@@ -40,14 +40,14 @@ template <typename PointType, typename PointArray=std::vector<PointType> >
  void dumpNode(size_t i){
    std::cout << points[i] << std::endl;
  }
- 
+
  void deletePoint(size_t nodeIndex);
  PointType getPoint(size_t nodeIndex){return points[nodeIndex];}
  void insertPoint(const PointType& p);
 
 
- //END PUBLIC API 
- private: 
+ //END PUBLIC API
+ private:
  std::unique_ptr<KDNode<PointType, 0> > root;
  PointArray points;
  std::vector<size_t> pointIndeces;
@@ -76,16 +76,16 @@ template <typename PointType, typename PointArray=std::vector<PointType> >
    }
    return true;
  }
- 
+
  template<int SplitDimension>
- size_t findMinSubtree(int dimension, 
+ size_t findMinSubtree(int dimension,
 		       std::unique_ptr<KDNode<PointType, SplitDimension> >& node);
 
  template<int SplitDimension>
  std::unique_ptr<KDNode<PointType, SplitDimension> >
- deleteFromSubtree(size_t nodeIndex, 
+ deleteFromSubtree(size_t nodeIndex,
 		   std::unique_ptr<KDNode<PointType, SplitDimension> >& node);
- 
+
  template<int SplitDimension, typename F>
  void inorderTraversalSubtree(F func,
 			      std::unique_ptr<KDNode<PointType, SplitDimension> >& node);
@@ -112,32 +112,32 @@ template<typename PointType, typename PointArray>
   std::unique_ptr<KDNode<PointType, SplitDimension> >
   KDTree<PointType, PointArray>::buildSubtree(std::vector<size_t>::iterator begin,
 					      std::vector<size_t>::iterator end){
-  
+
   auto rangeSize = std::distance(begin, end);
-  
+
   if(rangeSize == 0){
     return std::unique_ptr<KDNode<PointType, SplitDimension> >(nullptr);
   } else {
-    
-    std::sort(begin, end, 
+
+    std::sort(begin, end,
 	      [this]( size_t a, size_t b){
 		return points[a].getDimension(SplitDimension) < points[b].getDimension(SplitDimension);
 	      });
     auto median = begin + rangeSize/2;
     while(median != begin  &&
-	  points[*(median)].getDimension(SplitDimension) == 
+	  points[*(median)].getDimension(SplitDimension) ==
 	  points[*(median - 1)].getDimension(SplitDimension)){
-      --median; 
+      --median;
       //put all the nodes with equal coord value in the right subtree
     }
     auto ret = std::unique_ptr<KDNode<PointType, SplitDimension> >
       ( new KDNode<PointType, SplitDimension>(*median));
-    
+
     ret->leftChild  = buildSubtree<(SplitDimension +1)%PointType::dimension>(begin, median);
     ret->rightChild = buildSubtree<(SplitDimension +1)%PointType::dimension>(median + 1, end);
-    
+
     return ret;
-    
+
   }
 }
 
@@ -152,37 +152,37 @@ template<typename PointType, typename PointArray>
   void KDTree<PointType, PointArray>::dumpSubtree(std::unique_ptr<KDNode<PointType, SplitDimension> >& node){
   if(node->leftChild){
     std::cout << "dumping left: " << std::endl;
-    dumpSubtree<(SplitDimension +1)%PointType::dimension %3>(node->leftChild);
+    dumpSubtree<(SplitDimension +1)%PointType::dimension %PointType::dimension>(node->leftChild);
   }
   std::cout << "dumping this: " << std::endl;
   std::cout << node->treeIndex << ": " << points[node->treeIndex] << std::endl;
   if(node->rightChild){
     std::cout << "dumping right: " << std::endl;
-    dumpSubtree<(SplitDimension +1)%PointType::dimension %3>(node->rightChild);
+    dumpSubtree<(SplitDimension +1)%PointType::dimension %PointType::dimension>(node->rightChild);
   }
 }
 
 template<typename PointType, typename PointArray>
   std::vector<size_t> KDTree<PointType, PointArray>::getPointsWithinCube(PointType testPoint, double radius){
-  
+
   double queryRange[2*PointType::dimension];
   for(auto i = 0; i < PointType::dimension; ++i){
     queryRange[2*i] = testPoint.getDimension(i) - radius;
     queryRange[2*i +1] = testPoint.getDimension(i) + radius;
   }
-  
+
 
   std::vector<size_t> ret;
   getPointsWithinCubeSubtree<0>(testPoint, queryRange, root, ret);
-  
+
   return ret;
 }
 
 template<typename PointType, typename PointArray>
   template<int SplitDimension>
-  void KDTree<PointType, PointArray>::getPointsWithinCubeSubtree(PointType testPoint, 
+  void KDTree<PointType, PointArray>::getPointsWithinCubeSubtree(PointType testPoint,
 								 double queryRange[2*PointType::dimension],
-								 std::unique_ptr<KDNode<PointType, 
+								 std::unique_ptr<KDNode<PointType,
 								 SplitDimension> >& node,
 								 std::vector<size_t>& ret){
 
@@ -202,17 +202,17 @@ template<typename PointType, typename PointArray>
   if(nodePoint.getDimension(SplitDimension) >= queryRange[2*SplitDimension]){
     //query range goes into the left subtree
     //std::cout << "recurse left" << std::endl;
-    getPointsWithinCubeSubtree<(SplitDimension +1)%PointType::dimension>(testPoint, 
-								     queryRange, 
-								     node->leftChild, 
+    getPointsWithinCubeSubtree<(SplitDimension +1)%PointType::dimension>(testPoint,
+								     queryRange,
+								     node->leftChild,
 								     ret);
   }
   if(nodePoint.getDimension(SplitDimension) <= queryRange[2*SplitDimension + 1]){
     //query range goes into the right subtree
     //std::cout << "recurse right" << std::endl;
-    getPointsWithinCubeSubtree<(SplitDimension +1)%PointType::dimension>(testPoint, 
-								     queryRange, 
-								     node->rightChild, 
+    getPointsWithinCubeSubtree<(SplitDimension +1)%PointType::dimension>(testPoint,
+								     queryRange,
+								     node->rightChild,
 								     ret);
   }
 
@@ -224,12 +224,12 @@ template<typename PointType, typename PointArray>
   size_t KDTree<PointType, PointArray>::findMin(int dimension){
   return findMinSubtree<0>(dimension, root);
 }
-  
+
 
 template<typename PointType, typename PointArray>
   template<int SplitDimension>
   size_t KDTree<PointType, PointArray>::findMinSubtree(int dimension,
-						       std::unique_ptr<KDNode<PointType, 
+						       std::unique_ptr<KDNode<PointType,
 						       SplitDimension> >& node){
   if(SplitDimension == dimension){
     if(node->leftChild == nullptr){
@@ -253,11 +253,11 @@ template<typename PointType, typename PointArray>
     if(node->leftChild &&
        points[leftMin].getDimension(dimension) <
        nodeValue){
-      
+
       if(node->rightChild){
 	return (points[leftMin].getDimension(dimension) <
 		points[rightMin].getDimension(dimension)) ? leftMin : rightMin;
-	
+
       } else {
 	return leftMin;
       }
@@ -273,16 +273,16 @@ template<typename PointType, typename PointArray>
 
 template<typename PointType, typename PointArray>
   void KDTree<PointType, PointArray>::deletePoint(size_t nodeIndex){
-  
+
   root = deleteFromSubtree<0>(nodeIndex, root);
 }
 
 template<typename PointType, typename PointArray>
   template<int SplitDimension>
   std::unique_ptr<KDNode<PointType, SplitDimension> >
-  KDTree<PointType, PointArray>::deleteFromSubtree(size_t nodeIndex, 
+  KDTree<PointType, PointArray>::deleteFromSubtree(size_t nodeIndex,
 						   std::unique_ptr<KDNode<PointType, SplitDimension> >& node){
-  
+
   constexpr size_t nextDimension = (SplitDimension +1)%PointType::dimension;
 
   if(node->treeIndex == nodeIndex){
@@ -310,7 +310,7 @@ template<typename PointType, typename PointArray>
 							node->rightChild);
   }
   return std::move(node);
-  
+
 }
 
 template<typename PointType, typename PointArray>
@@ -318,13 +318,13 @@ template <typename F>
   void KDTree<PointType, PointArray>::inorderTraversal(F func){
 
   inorderTraversalSubtree<0, F>(func, root);
-  
+
 }
 
 template<typename PointType, typename PointArray>
   template<int SplitDimension, typename F>
   void KDTree<PointType, PointArray>::inorderTraversalSubtree(F func,
-							      std::unique_ptr<KDNode<PointType, 
+							      std::unique_ptr<KDNode<PointType,
 							      SplitDimension> >& node){
   auto constexpr nextDimension = (SplitDimension +1)%PointType::dimension;
   if(node->leftChild){
@@ -334,7 +334,7 @@ template<typename PointType, typename PointArray>
   if(node->rightChild){
     inorderTraversalSubtree<nextDimension, F>(func, node->rightChild);
   }
-  
+
 }
 
 template<typename PointType, typename PointArray>
@@ -348,7 +348,7 @@ template<typename PointType, typename PointArray>
   std::unique_ptr<KDNode<PointType, SplitDimension> >
   KDTree<PointType, PointArray>::insertPointSubtree(std::unique_ptr<KDNode<PointType, SplitDimension> >& node,
 						    size_t pointIndex){
-  
+
   auto constexpr nextDimension = (SplitDimension +1)%PointType::dimension;
 
   if(node == nullptr){
@@ -365,6 +365,6 @@ template<typename PointType, typename PointArray>
     std::cout << "added right" << std::endl;
   }
   return std::move(node);
-  
+
 }
 #endif //_BJ_KD_TREE_H

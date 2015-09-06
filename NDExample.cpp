@@ -50,17 +50,17 @@ private:
 
 int main(void)
 {
-    typedef ndPoint<3> pointType;
+    typedef ndPoint<4> pointType;
     KDTree<pointType> tree;
 
-    std::vector<pointType> pts{{0,0,0},
-        {1,1,1},
-        {-1, 3, 4},
-        {5, 6, 7},
-        {2, -6, 8},
-        {4, 5, -4},
-        {2, 3, 4},
-        {2, 5, 6}
+    std::vector<pointType> pts{{0,0,0,0},
+        {1,1,1,1},
+        {-1, 3, 4,3},
+        {5, 6, 7,5},
+        {2, -6, 8,6},
+        {4, 5, -4,-3},
+        {2, 3, 4,-1},
+        {2, 5, 6,-2}
     };
 
     tree.buildTree(pts);
@@ -68,14 +68,14 @@ int main(void)
     tree.dumpTreeInorder();
 
     std::cout << "searching near 0,0,0.1" << std::endl;
-    auto closeNodes = tree.getPointsWithinCube({0, 0, 0.1}, 0.2);
+    auto closeNodes = tree.getPointsWithinCube({0, 0,0, 0.1}, 0.2);
     std::cout << "found" << std::endl;
     for(auto n : closeNodes){
       tree.dumpNode(n);
     }
 
     std::cout << "searching near 0.5,0.5,0.5" << std::endl;
-    closeNodes = tree.getPointsWithinCube({0.5, 0.5, 0.5}, 0.7);
+    closeNodes = tree.getPointsWithinCube({0.5, 0.5, 0.5,0.5}, 0.7);
     std::cout << "found" << std::endl;
     for(auto n : closeNodes){
       tree.dumpNode(n);
@@ -96,9 +96,9 @@ int main(void)
     }
 
     std::cout << "inserting 2 points" << std::endl;
-    tree.insertPoint({1, 4, 5});
+    tree.insertPoint({1, 4, 5,3});
     tree.dumpTreeInorder();
-    tree.insertPoint({3, 8, 6});
+    tree.insertPoint({3, 8, 6,-4});
     tree.dumpTreeInorder();
 
     return 0;
