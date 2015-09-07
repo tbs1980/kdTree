@@ -93,8 +93,8 @@ template<typename PointType, typename PointArray>
 void KDTree<PointType, PointArray>::buildTree(const PointArray& pointsIn){
     mPoints = pointsIn;
     mPointIndeces.resize( mPoints.size() );
-    std::iota(begin(mPointIndeces), end(mPointIndeces), 0);
-    mRoot = buildSubtree<0>(begin(mPointIndeces), end(mPointIndeces));
+    std::iota( std::begin(mPointIndeces), std::end(mPointIndeces), 0);
+    mRoot = buildSubtree<0>( std::begin(mPointIndeces), std::end(mPointIndeces));
 }
 
 template<typename PointType, typename PointArray>
@@ -106,23 +106,24 @@ KDTree<PointType, PointArray>::buildSubtree( std::vector<size_t>::iterator begin
     auto rangeSize = std::distance(begin, end);
 
     if(rangeSize == 0){
-        return std::unique_ptr<KDNode<PointType, SplitDimension> >(nullptr);
+        return std::unique_ptr< KDNode<PointType, SplitDimension> >(nullptr);
     } else {
         std::sort(begin, end,
             [this]( size_t a, size_t b){
                 return mPoints[a].getDimension(SplitDimension) < mPoints[b].getDimension(SplitDimension);
             });
         auto median = begin + rangeSize/2;
-        while(median != begin  &&
-            mPoints[*(median)].getDimension(SplitDimension) ==
-                mPoints[*(median - 1)].getDimension(SplitDimension)){
+        while(median != begin  && mPoints[*(median)].getDimension(SplitDimension) ==
+            mPoints[*(median - 1)].getDimension(SplitDimension)){
             --median;
             //put all the nodes with equal coord value in the right subtree
         }
-        auto ret = std::unique_ptr<KDNode<PointType, SplitDimension> >
-            ( new KDNode<PointType, SplitDimension>(*median));
+        auto ret = std::unique_ptr< KDNode<PointType, SplitDimension> >
+            ( new KDNode<PointType, SplitDimension>(*median) );
+
         ret->leftChild  = buildSubtree<(SplitDimension +1)%PointType::dimension>(begin, median);
         ret->rightChild = buildSubtree<(SplitDimension +1)%PointType::dimension>(median + 1, end);
+
         return ret;
     }
 }
